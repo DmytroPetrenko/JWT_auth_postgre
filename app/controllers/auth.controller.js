@@ -2,6 +2,7 @@ const db = require("../models")
 const config = require("../config/auth.config")
 const User = db.user
 const Role = db.role
+const Game = db.game
 
 const Op = db.Sequelize.Op
 
@@ -24,13 +25,27 @@ exports.signup = (req, res) => {
 						},
 					},
 				}).then((roles) => {
-					user.setRoles(roles).then(() => {
+					user.setRoles(roles)
+				})
+			} else {
+				// user role = 1
+				user.setRoles([1])
+			}
+			if (req.body.games) {
+				Game.findAll({
+					where: {
+						name: {
+							[Op.or]: req.body.games,
+						},
+					},
+				}).then((games) => {
+					user.setGames(games).then(() => {
 						res.send({ message: "User was registered successfully!" })
 					})
 				})
 			} else {
-				// user role = 1
-				user.setRoles([1]).then(() => {
+				// user game = 1
+				user.setGames([1]).then(() => {
 					res.send({ message: "User was registered successfully!" })
 				})
 			}
@@ -46,7 +61,7 @@ exports.signin = (req, res) => {
 			username: req.body.username,
 		},
 	})
-		.then((user) => {
+		.then(async (user) => {
 			if (!user) {
 				return res.status(404).send({ message: "User Not found." })
 			}
@@ -64,18 +79,28 @@ exports.signin = (req, res) => {
 				expiresIn: 86400, // 24 hours
 			})
 
-			var authorities = []
-			user.getRoles().then((roles) => {
-				for (let i = 0; i < roles.length; i++) {
-					authorities.push("ROLE_" + roles[i].name.toUpperCase())
-				}
-				res.status(200).send({
-					id: user.id,
-					username: user.username,
-					email: user.email,
-					roles: authorities,
-					accessToken: token,
-				})
+			const authorities = []
+			const roles = await user.getRoles()
+			for (let i = 0; i < roles.length; i++) {
+				authorities.push("ROLE_" + roles[i].name.toUpperCase())
+			}
+
+			const favouriteGames = []
+			const games = await user.getGames()
+			for (let i = 0; i < games.length; i++) {
+				favouriteGames.push("GAME_" + games[i].name.toUpperCase())
+			}
+
+			res.status(200).send({
+				id: user.id,
+				username: user.username,
+				email: user.email,
+				name: user.name,
+				surname: user.surname,
+				university: user.university,
+				roles: authorities,
+				games: favouriteGames,
+				accessToken: token,
 			})
 		})
 		.catch((err) => {
