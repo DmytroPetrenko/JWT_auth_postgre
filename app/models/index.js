@@ -22,6 +22,8 @@ db.sequelize = sequelize
 db.user = require("../models/user.model.js")(sequelize, Sequelize)
 db.role = require("../models/role.model.js")(sequelize, Sequelize)
 db.game = require("../models/game.model.js")(sequelize, Sequelize)
+db.img = require("../models/img.model.js")(sequelize, Sequelize)
+db.imgUsers = require("../models/imgUsers.model.js")(sequelize, Sequelize)
 
 db.role.belongsToMany(db.user, {
 	through: "user_roles",
@@ -43,6 +45,18 @@ db.user.belongsToMany(db.game, {
 	foreignKey: "userId",
 	otherKey: "gameId",
 })
+db.img.belongsToMany(db.user, { through: db.imgUsers })
+db.user.belongsToMany(db.img, { through: db.imgUsers })
+/* db.img.belongsToMany(db.user, {
+	through: "img_users",
+	foreignKey: "imgId",
+	otherKey: "userId",
+})
+db.user.belongsToMany(db.img, {
+	through: "img_users",
+	foreignKey: "userId",
+	otherKey: "imgId",
+}) */
 
 db.ROLES = ["user", "admin", "moderator"]
 db.GAMES = ["cs:go", "dota2", "valorant"]

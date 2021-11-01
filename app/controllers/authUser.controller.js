@@ -1,11 +1,12 @@
 const db = require("../models")
-var jwt = require("jsonwebtoken")
 
 const User = db.user
+const ImgUsers = db.imgUsers
 
 exports.edit = async (req, res) => {
 	try {
 		const user = await User.findOne({ where: { id: req.body.id } })
+
 		user.username = req.body.propsForChange.username
 		user.email = req.body.propsForChange.email
 		user.name = req.body.propsForChange.name
@@ -13,6 +14,11 @@ exports.edit = async (req, res) => {
 		user.university = req.body.propsForChange.university
 
 		await user.save()
+
+		const imgUsers = await ImgUsers.findOne({ where: { userId: req.body.id } })
+		imgUsers.imageId = req.body.propsForChange.imgId
+
+		await imgUsers.save()
 
 		const authorities = []
 		const roles = await user.getRoles()

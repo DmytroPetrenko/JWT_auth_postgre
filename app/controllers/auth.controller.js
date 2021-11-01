@@ -49,6 +49,7 @@ exports.signup = (req, res) => {
 					res.send({ message: "User was registered successfully!" })
 				})
 			}
+			user.setImages([1])
 		})
 		.catch((err) => {
 			res.status(500).send({ message: err.message })
@@ -91,6 +92,7 @@ exports.signin = (req, res) => {
 				favouriteGames.push("GAME_" + games[i].name.toUpperCase())
 			}
 
+			const userImage = await user.getImages()
 			res.status(200).send({
 				id: user.id,
 				username: user.username,
@@ -100,6 +102,7 @@ exports.signin = (req, res) => {
 				university: user.university,
 				roles: authorities,
 				games: favouriteGames,
+				img: userImage[0],
 				accessToken: token,
 			})
 		})
